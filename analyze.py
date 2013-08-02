@@ -1,7 +1,15 @@
+#!/usr/bin/env python
+import codecs
 from string import punctuation
 import operator
 import re
+from couchdbkit import *
+import numpy.numarray as na
 
+class Paper(Document):
+    author = StringProperty()
+    url = StringProperty()
+    words = DictProperty()
 
 def clean(text):
     """
@@ -30,18 +38,20 @@ def get_words(filename):
     text file of a paper
     """
 # load in text file to string
-    f = open(filename, "r")
+    f = codecs.open(filename, "r", encoding='utf-8')
 
     lines = list(f)
     f.close()
+    lines = [l.encode('utf-8') for l in lines]
 
 # list to store lines in the introduction
     intro_lines = []
 # track index of line with first occurence of introduction
     c = 0
+    start_key = 'introduction'
 # cut string down to text between "introduction" (case insensitive) and first empty line
     for line in lines:
-        if "introduction" in line.lower():
+        if start_key in line.lower():
             lines = lines[c+1:]
             break
         c += 1
@@ -86,4 +96,12 @@ def count(words):
     sorted_counts = [(k,v) for v,k in sorted([(v,k) for k,v in counts.items()],reverse=True)]
     return sorted_counts
 
-print count(get_words("text/1307.2018.txt"))
+words = get_words("text/1307.2018.txt")
+count =  count(words)
+# set up connection to local couchDB
+#server = Server()
+#db = server.get_or_create_db("papers")
+#Paper.set_db(db)
+# Paper(author="bla blah", url="fsd").save
+
+# add these counts to the corpus
